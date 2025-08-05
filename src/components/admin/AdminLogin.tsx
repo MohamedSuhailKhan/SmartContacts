@@ -1,25 +1,44 @@
 import React, { useState } from 'react';
 import { UserIcon, LockIcon, EyeIcon, EyeOffIcon } from 'lucide-react';
 interface AdminLoginProps {
-  onLogin: (username: string, password: string) => boolean;
+  onLoginSuccess: () => void;
 }
-export const AdminLogin: React.FC<AdminLoginProps> = ({
-  onLogin
-}) => {
+
+export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
     if (!username || !password) {
       setError('Please enter both username and password');
       return;
     }
-    const success = onLogin(username, password);
-    if (!success) {
-      setError('Invalid username or password');
+
+    try {
+      const response = await fetch('http://localhost:3001/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem('adminToken', data.token);
+        onLoginSuccess();
+      } else {
+        setError(data.message || 'Invalid username or password');
+      }
+    } catch (error) {
+      setError('An error occurred. Please try again.');
+      console.error('Login error:', error);
     }
   };
   return <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
