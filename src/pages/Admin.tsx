@@ -5,24 +5,20 @@ import { AdminDashboard } from '../components/admin/AdminDashboard';
 import { AdminHeader } from '../components/admin/AdminHeader';
 import { ClientDetails } from '../components/admin/ClientDetails';
 export const Admin = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  // Simple authentication handler
-  const handleLogin = (username: string, password: string) => {
-    // In a real app, this would validate against a backend
-    if (username === 'admin' && password === 'optometrist123') {
-      setIsAuthenticated(true);
-      return true;
-    }
-    return false;
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('adminToken'));
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
   };
-  // Logout handler
+
   const handleLogout = () => {
+    localStorage.removeItem('adminToken');
     setIsAuthenticated(false);
   };
   return <div className="min-h-screen bg-gray-100">
       {isAuthenticated && <AdminHeader onLogout={handleLogout} />}
       <Routes>
-        <Route path="/" element={isAuthenticated ? <Navigate to="/admin/dashboard" /> : <AdminLogin onLogin={handleLogin} />} />
+        <Route path="/" element={isAuthenticated ? <Navigate to="/admin/dashboard" /> : <AdminLogin onLoginSuccess={handleLoginSuccess} />} />
         <Route path="/dashboard" element={isAuthenticated ? <AdminDashboard /> : <Navigate to="/admin" />} />
         <Route path="/clients/:id" element={isAuthenticated ? <ClientDetails /> : <Navigate to="/admin" />} />
       </Routes>

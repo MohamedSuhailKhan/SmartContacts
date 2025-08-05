@@ -29,37 +29,51 @@ export const PrescriptionUploadSection = () => {
   const handlePrevStep = () => {
     setFormStep(1);
   };
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsUploading(true);
-    // In a real app, we would send this data to the backend
-    const prescriptionData = {
-      name,
-      email,
-      phone,
-      prescription: {
-        rightEye: {
-          sphere: rightEyeSphere,
-          cylinder: rightEyeCylinder,
-          axis: rightEyeAxis
-        },
-        leftEye: {
-          sphere: leftEyeSphere,
-          cylinder: leftEyeCylinder,
-          axis: leftEyeAxis
-        },
-        additionalInfo
+
+    const prescriptionDetails = {
+      rightEye: {
+        sphere: rightEyeSphere,
+        cylinder: rightEyeCylinder,
+        axis: rightEyeAxis,
       },
-      file: file ? file.name : null,
-      status: 'pending',
-      uploadDate: new Date().toISOString().split('T')[0]
+      leftEye: {
+        sphere: leftEyeSphere,
+        cylinder: leftEyeCylinder,
+        axis: leftEyeAxis,
+      },
+      additionalInfo,
     };
-    console.log('Prescription data:', prescriptionData);
-    // Simulate upload
-    setTimeout(() => {
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('phone', phone);
+    formData.append('prescriptionDetails', JSON.stringify(prescriptionDetails));
+    if (file) {
+      formData.append('prescriptionFile', file);
+    }
+
+    try {
+      const response = await fetch('http://localhost:3001/api/prescriptions', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        setIsUploaded(true);
+      } else {
+        console.error('Error uploading prescription');
+        // Handle error state here
+      }
+    } catch (error) {
+      console.error('Error uploading prescription:', error);
+      // Handle error state here
+    } finally {
       setIsUploading(false);
-      setIsUploaded(true);
-    }, 1500);
+    }
   };
   const resetForm = () => {
     setName('');
